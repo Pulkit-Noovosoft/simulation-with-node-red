@@ -1,0 +1,26 @@
+[
+  {
+    "id": "7395d5e083fb18f7",
+    "type": "http request",
+    "z": "9d5b19fd80c19c78",
+    "name": "http request 2",
+    "method": "use",
+    "ret": "txt",
+    "paytoqs": "ignore",
+    "url": "https://node-red-d6e8f-default-rtdb.firebaseio.com/temperature.json",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 540,
+    "y": 320,
+    "wires": [
+      [
+        "d806ee91ec068c90"
+      ]
+    ]
+  }
+]
