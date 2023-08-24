@@ -33,10 +33,14 @@ temperaturePlot.setYRange(30, 50);
 // Number of points to be plotted
 const frequency = 25;
 
+// TODO: instead of plotting all 25 points, try to plot only last point
+
 // Will be called when new voltage reading is added
 onValue(ref(db, "voltage"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const voltage = data.slice(data.length - frequency, data.length);
+
+    // console.log(data)
 
     comparePlot.plotPoints(voltage, "blue", frequency)
     voltagePlot.plotPoints(voltage, "blue", frequency * 2)

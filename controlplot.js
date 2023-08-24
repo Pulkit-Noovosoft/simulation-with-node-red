@@ -28,27 +28,31 @@ class ControlPlot {
         this.YTickSize = (this.height - 60) / this.YTicks;
     }
 
-    // drawLineWithId(svg, {x1 = 0, y1 = 0, x2 = 0, y2 = 0, stroke = 'black', strokeWidth = 1, strokeType = 'solid', id = null}) {
-    //     let element = id ? document.getElementById(id + "_") : null;
-    //
-    //     if (!element) {
-    //         element = document.createElementNS(svgNS, 'line');
-    //     }
-    //
-    //     element.setAttributeNS(null, 'x1', x1.toString());
-    //     element.setAttributeNS(null, 'y1', y1.toString());
-    //     element.setAttributeNS(null, 'x2', x2.toString());
-    //     element.setAttributeNS(null, 'y2', y2.toString());
-    //     element.setAttributeNS(null, 'stroke', stroke.toString());
-    //     element.setAttributeNS(null, 'stroke-width', strokeWidth.toString());
-    //     element.setAttributeNS(null, 'shape-rendering', 'crispEdges');
-    //
-    //     if (strokeType === 'dashed') {
-    //         element.setAttributeNS(null, 'stroke-dasharray', '4');
-    //     }
-    //
-    //     svg.appendChild(element);
-    // }
+    drawLineWithId(svg, { x1 = 0, y1 = 0, x2 = 0, y2 = 0, stroke = 'black', strokeWidth = 1, strokeType = 'solid', id = null}) {
+        let element = id ? document.getElementById(id + "_line") : null;
+
+        if (!element) {
+            element = document.createElementNS(svgNS, 'line');
+        }
+
+        if (id) {
+            element.setAttributeNS(null, 'id', id + "_line");
+        }
+
+        element.setAttributeNS(null, 'x1', x1.toString());
+        element.setAttributeNS(null, 'y1', y1.toString());
+        element.setAttributeNS(null, 'x2', x2.toString());
+        element.setAttributeNS(null, 'y2', y2.toString());
+        element.setAttributeNS(null, 'stroke', stroke.toString());
+        element.setAttributeNS(null, 'stroke-width', strokeWidth.toString());
+        element.setAttributeNS(null, 'shape-rendering', 'crispEdges');
+
+        if (strokeType === 'dashed') {
+            element.setAttributeNS(null, 'stroke-dasharray', '4');
+        }
+
+        svg.appendChild(element);
+    }
 
     drawCoordinateAxis() {
         // X-axis
@@ -73,6 +77,9 @@ class ControlPlot {
             });
 
             const timeStamp = new Date(parseInt(dataPoints[i - 1][0]));
+
+            // TODO: check if there is a standard method
+
             let min = timeStamp.getMinutes();
             if (min < 10) min = "0" + min;
 
@@ -108,32 +115,20 @@ class ControlPlot {
         }
     }
 
-    drawZones() {
-        for (let i = 1; i <= this.XTicks; i += 1) {
-            // vertical zone
-            drawRectangle(this.svg, {
-                x: 30 + (this.XTickSize * i) - (this.XTickSize / 3),
-                y: 20,
-                width: 2 * (this.XTickSize / 3),
-                height: this.height - 40,
-                fill: "lightblue"
-            });
-        }
-    }
-
-    joinPoints(dataPoints, l, r, color) {
+    joinPoints(dataPoints, l, r, color, id) {
         if (l < 0) return;
 
         const point1 = dataPoints[l];
         const point2 = dataPoints[r];
 
-        drawLine(this.svg, {
+        this.drawLineWithId(this.svg, {
             x1: 30 + this.XTickSize + (l * this.XTickSize),
             y1: 20 + (this.maxYTick - point1[1]) * this.YTickSize,
             x2: 30 + +this.XTickSize + (r * this.XTickSize),
             y2: 20 + (this.maxYTick - point2[1]) * this.YTickSize,
             stroke: color,
-            strokeWidth: 2
+            strokeWidth: 2,
+            id: id
         });
     }
 
@@ -142,7 +137,6 @@ class ControlPlot {
         this.removeElementsByTagName("text")
         this.drawXTicksLabels(dataPoints);
         this.drawYTicksLabels();
-        // this.drawZones();
 
         dataPoints.forEach((point, index) => {
             drawCircle(this.svg, {
@@ -152,7 +146,7 @@ class ControlPlot {
                 fill: color,
                 id: frequency + index
             });
-            // this.joinPoints(dataPoints, index - 1, index, color);
+            this.joinPoints(dataPoints, index - 1, index, color, index + frequency);
         })
     }
 }
