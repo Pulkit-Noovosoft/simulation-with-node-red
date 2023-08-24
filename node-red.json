@@ -1,5 +1,59 @@
 [
   {
+    "id": "9d5b19fd80c19c78",
+    "type": "tab",
+    "label": "Flow 3",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
+    "id": "fd22d19ef393643e",
+    "type": "inject",
+    "z": "9d5b19fd80c19c78",
+    "name": "",
+    "props": [
+      {
+        "p": "payload"
+      },
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "3",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 110,
+    "y": 200,
+    "wires": [
+      [
+        "13856ace6f6e02dd",
+        "651aecd0bb0d3d52"
+      ]
+    ]
+  },
+  {
+    "id": "d806ee91ec068c90",
+    "type": "debug",
+    "z": "9d5b19fd80c19c78",
+    "name": "debug 3",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 700,
+    "y": 320,
+    "wires": []
+  },
+  {
     "id": "7395d5e083fb18f7",
     "type": "http request",
     "z": "9d5b19fd80c19c78",
@@ -22,5 +76,84 @@
         "d806ee91ec068c90"
       ]
     ]
+  },
+  {
+    "id": "13856ace6f6e02dd",
+    "type": "function",
+    "z": "9d5b19fd80c19c78",
+    "name": "Tempreture Generator",
+    "func": "function generateRandom(min = 0, max = 100) {\n\n    // find diff\n    let difference = max - min;\n\n    // generate random number \n    let rand = Math.random();\n\n    // multiply with difference \n    rand = Math.floor(rand * difference);\n\n    // add with min value \n    rand = rand + min;\n\n    return rand;\n}\n\nmsg.method = \"PATCH\";\n\nconst timestamp = msg.payload;\n\nmsg.payload = {\n    [timestamp]: generateRandom(30, 51)\n}\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 260,
+    "y": 320,
+    "wires": [
+      [
+        "7395d5e083fb18f7"
+      ]
+    ]
+  },
+  {
+    "id": "651aecd0bb0d3d52",
+    "type": "function",
+    "z": "9d5b19fd80c19c78",
+    "name": "Voltage Generator",
+    "func": "function generateRandom(min = 0, max = 100) {\n\n    // find diff\n    let difference = max - min;\n\n    // generate random number \n    let rand = Math.random();\n\n    // multiply with difference \n    rand = Math.floor(rand * difference);\n\n    // add with min value \n    rand = rand + min;\n\n    return rand;\n}\n\nmsg.method = \"PATCH\";\n\nconst timestamp = msg.payload;\n\nmsg.payload = {\n    [timestamp] : generateRandom(30, 51)\n}\n\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 250,
+    "y": 80,
+    "wires": [
+      [
+        "91166683cf80cd67"
+      ]
+    ]
+  },
+  {
+    "id": "91166683cf80cd67",
+    "type": "http request",
+    "z": "9d5b19fd80c19c78",
+    "name": "http request 1",
+    "method": "use",
+    "ret": "txt",
+    "paytoqs": "ignore",
+    "url": "https://node-red-d6e8f-default-rtdb.firebaseio.com/voltage.json",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 540,
+    "y": 80,
+    "wires": [
+      [
+        "5b7d36441b14ea53"
+      ]
+    ]
+  },
+  {
+    "id": "5b7d36441b14ea53",
+    "type": "debug",
+    "z": "9d5b19fd80c19c78",
+    "name": "debug 4",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 700,
+    "y": 80,
+    "wires": []
   }
 ]
