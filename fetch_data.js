@@ -32,28 +32,41 @@ temperaturePlot.setYRange(30, 50);
 
 // Number of points to be plotted
 const frequency = 25;
-const averageTime = 180;
+const averageTime = 60;
 
 // TODO: instead of plotting all 25 points, try to plot only latest point
+
+let greenTime = -1;
+let blueTime = -1;
 
 // Will be called when new voltage reading is added
 onValue(ref(db, "voltage"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const voltage = data.slice(data.length - frequency, data.length);
-    const voltageAverage = getAverage(data);
 
     comparePlot.plotPoints(voltage, "blue", frequency)
-    voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2)
+
+    // Calling function only after intervals of 1 min
+    if(blueTime === -1 || new Date().getMinutes() - blueTime === 1){
+        const voltageAverage = getAverage(data);
+        voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2)
+        blueTime = new Date().getMinutes();
+    }
 })
 
 // Will be called when new temperature reading is added
 onValue(ref(db, "temperature"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const temperature = data.slice(data.length - frequency, data.length);
-    const temperatureAverage = getAverage(data);
 
     comparePlot.plotPoints(temperature, "green", frequency * 3)
-    temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4)
+
+    // Calling function only after intervals of 1 min
+    if(greenTime === -1 || new Date().getMinutes() - greenTime === 1){
+        const temperatureAverage = getAverage(data);
+        temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4)
+        greenTime = new Date().getMinutes();
+    }
 })
 
 // Getting average
@@ -69,7 +82,7 @@ function getAverage(rawData) {
     return averageData;
 }
 
-// Will find average for each interval of 3 mins
+// Will find average for each interval of 1 mins
 function calAverage(data) {
     const timeSum = data.reduce((accumulator, currentValue) => {
         return accumulator + currentValue[0];
