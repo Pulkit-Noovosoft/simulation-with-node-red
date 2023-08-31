@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
-import {getDatabase, ref, get, onValue, child} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
+import {getDatabase, onValue, ref} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -32,25 +32,70 @@ temperaturePlot.setYRange(30, 50);
 
 // Number of points to be plotted
 const frequency = 25;
+const averageTime = 180;
 
-// TODO: instead of plotting all 25 points, try to plot only last point
+// TODO: instead of plotting all 25 points, try to plot only latest point
 
 // Will be called when new voltage reading is added
 onValue(ref(db, "voltage"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const voltage = data.slice(data.length - frequency, data.length);
-
-    // console.log(data)
+    const voltageAverage = getAverage(data);
 
     comparePlot.plotPoints(voltage, "blue", frequency)
-    voltagePlot.plotPoints(voltage, "blue", frequency * 2)
+    voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2)
 })
 
 // Will be called when new temperature reading is added
 onValue(ref(db, "temperature"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const temperature = data.slice(data.length - frequency, data.length);
+    const temperatureAverage = getAverage(data);
 
     comparePlot.plotPoints(temperature, "green", frequency * 3)
-    temperaturePlot.plotPoints(temperature, "green", frequency * 4)
+    temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4)
 })
+
+// Getting average
+function getAverage(rawData) {
+    const data = getRequiredSampleSize(rawData);
+    const binSize = data.length / frequency;
+
+    const averageData = [];
+    for (let i = binSize; i <= data.length; i += binSize) {
+        averageData.push(calAverage(data.slice(i - binSize, i)));
+    }
+
+    return averageData;
+}
+
+// Will find average for each interval of 3 mins
+function calAverage(data) {
+    const timeSum = data.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue[0];
+    }, 0);
+
+    const valueSum = data.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue[1];
+    }, 0);
+
+    return [Math.round(timeSum / data.length).toString(), (valueSum / data.length)];
+}
+
+function getRequiredSampleSize(rawData) {
+    const data = castTimeToNumber(rawData);
+    const interval = getInterval(data);
+    return data.slice(data.length - frequency * Math.round(averageTime / interval),
+        data.length);
+}
+
+function castTimeToNumber(rawData) {
+    return rawData.map(dataPoint => {
+        return [parseInt(dataPoint[0]), dataPoint[1]];
+    })
+}
+
+// Dynamically finds time interval between two data-points
+function getInterval(data) {
+    return Math.round((data[data.length - 1][0] - data[data.length - 2][0]) / 1000);
+}
