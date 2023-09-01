@@ -1,6 +1,13 @@
 // Import the functions you need from the SDKs you need
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
-import {getDatabase, onValue, ref} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
+import {
+    getDatabase,
+    onValue,
+    ref,
+    onChildAdded,
+    query,
+    limitToLast
+} from "https://www.gstatic.com/firebasejs/10.3.0/firebase-database.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -33,37 +40,56 @@ temperaturePlot.setYRange(30, 50);
 // Number of points to be plotted
 const frequency = 25;
 const averageTime = 60;
+const pointsRequired = Math.round(frequency * Math.ceil(averageTime / 3));
 
 // TODO: instead of plotting all 25 points, try to plot only latest point
 
 let greenTime = -1;
 let blueTime = -1;
 
-// Will be called when new voltage reading is added
-onValue(ref(db, "voltage"), (snapshot) => {
-    const data = Object.entries(snapshot.val());
-    const voltage = data.slice(data.length - frequency, data.length);
+const voltageData = [];
+const temperatureData = [];
 
-    comparePlot.plotPoints(voltage, "blue", frequency, false)
+const voltageRequiredData = [];
+const temperatureReqData = [];
 
-    // Calling function only after intervals of 1 min
-    if(blueTime === -1 || new Date().getMinutes() - blueTime === 1){
-        const voltageAverage = getAverage(data);
-        voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2, true)
+// Will be called when new voltage reading is added and returns only last child
+onChildAdded(query(ref(db, "voltage"), limitToLast(frequency)), (snapshot) => {
+    voltageData.push([snapshot.key, snapshot.val()]);
+
+    if (voltageData.length >= frequency) {
+        const voltage = voltageData.slice(voltageData.length - frequency, voltageData.length);
+        comparePlot.plotPoints(voltage, "blue", frequency, false);
+    }
+})
+
+// Plots 1 min average of voltage
+onChildAdded(query(ref(db, "voltage"), limitToLast(pointsRequired)), (snapshot) => {
+    voltageRequiredData.push([snapshot.key, snapshot.val()]);
+
+    if (voltageRequiredData.length >= pointsRequired && (blueTime === -1 || new Date().getMinutes() - blueTime === 1)) {
+        const voltageAverage = getAverage(voltageRequiredData);
+        voltagePlot.plotPoints(voltageAverage, "blue", frequency * 3, true)
         blueTime = new Date().getMinutes();
     }
 })
 
-// Will be called when new temperature reading is added
-onValue(ref(db, "temperature"), (snapshot) => {
-    const data = Object.entries(snapshot.val());
-    const temperature = data.slice(data.length - frequency, data.length);
+// Will be called when new temperature reading is added and returns only last child
+onChildAdded(query(ref(db, "temperature"), limitToLast(frequency)), (snapshot) => {
+    temperatureData.push([snapshot.key, snapshot.val()]);
 
-    comparePlot.plotPoints(temperature, "green", frequency * 3, false)
+    if (temperatureData.length >= frequency) {
+        const temperature = temperatureData.slice(temperatureData.length - frequency, temperatureData.length);
+        comparePlot.plotPoints(temperature, "green", frequency * 2, false);
+    }
+})
 
-    // Calling function only after intervals of 1 min
-    if(greenTime === -1 || new Date().getMinutes() - greenTime === 1){
-        const temperatureAverage = getAverage(data);
+// Plots 1 min average of temperature
+onChildAdded(query(ref(db, "temperature"), limitToLast(pointsRequired)), (snapshot) => {
+    temperatureReqData.push([snapshot.key, snapshot.val()]);
+
+    if (temperatureReqData.length >= pointsRequired && (greenTime === -1 || new Date().getMinutes() - greenTime === 1)) {
+        const temperatureAverage = getAverage(temperatureReqData);
         temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4, true)
         greenTime = new Date().getMinutes();
     }
