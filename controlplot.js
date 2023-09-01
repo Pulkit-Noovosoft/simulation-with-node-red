@@ -28,7 +28,9 @@ class ControlPlot {
         this.YTickSize = (this.height - 60) / this.YTicks;
     }
 
-    drawLineWithId(svg, { x1 = 0, y1 = 0, x2 = 0, y2 = 0, stroke = 'black', strokeWidth = 1, strokeType = 'solid', id = null}) {
+    drawLineWithId(svg, {
+        x1 = 0, y1 = 0, x2 = 0, y2 = 0, stroke = 'black', strokeWidth = 1, strokeType = 'solid', id = null
+    }) {
         let element = id ? document.getElementById(id + "_line") : null;
 
         if (!element) {
@@ -66,7 +68,22 @@ class ControlPlot {
         while (elements[0]) elements[0].parentNode.removeChild(elements[0])
     }
 
-    drawXTicksLabels(dataPoints) {
+    getHours(timestamp) {
+        const hours = timestamp.getHours();
+        return hours < 10 ? "0" + hours : hours;
+    }
+
+    getMin(timestamp) {
+        const min = timestamp.getMinutes();
+        return min < 10 ? "0" + min : min;
+    }
+
+    getSeconds(timestamp) {
+        const secs = timestamp.getSeconds();
+        return secs < 10 ? "0" + secs : secs;
+    }
+
+    drawXTicksLabels(dataPoints, isAverage) {
         for (let i = 1; i <= this.XTicks; i += 1) {
             // axis ticks
             drawLine(this.svg, {
@@ -77,16 +94,16 @@ class ControlPlot {
             });
 
             const timeStamp = new Date(parseInt(dataPoints[i - 1][0]));
+            let label;
+
+            if (isAverage) {
+                label = this.getHours(timeStamp) + ":" + this.getMin(timeStamp);
+            } else {
+                label = this.getMin(timeStamp) + ":" + this.getSeconds(timeStamp);
+            }
 
             // TODO: check if there is a standard method
 
-            let min = timeStamp.getMinutes();
-            if (min < 10) min = "0" + min;
-
-            let secs = timeStamp.getSeconds();
-            if (secs < 10) secs = "0" + secs;
-
-            const label = min + ":" + secs;
             // axis labels
             drawText(this.svg, {
                 x: 15 + this.XTickSize * i,
@@ -94,6 +111,15 @@ class ControlPlot {
                 text: label
             });
         }
+    }
+
+    drawXUnit(isAverage) {
+        const unit = isAverage ? "Hour:Min" : "Min:Sec";
+        drawText(this.svg, {
+            x: 5,
+            y: this.height - 6,
+            text: unit
+        });
     }
 
     drawYTicksLabels() {
@@ -132,10 +158,11 @@ class ControlPlot {
         });
     }
 
-    plotPoints(dataPoints, color, frequency) {
+    plotPoints(dataPoints, color, frequency, isAverage) {
         this.setXRange(1, dataPoints.length);
         this.removeElementsByTagName("text")
-        this.drawXTicksLabels(dataPoints);
+        this.drawXTicksLabels(dataPoints, isAverage);
+        this.drawXUnit(isAverage);
         this.drawYTicksLabels();
 
         dataPoints.forEach((point, index) => {

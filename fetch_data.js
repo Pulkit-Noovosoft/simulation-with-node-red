@@ -44,12 +44,12 @@ onValue(ref(db, "voltage"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const voltage = data.slice(data.length - frequency, data.length);
 
-    comparePlot.plotPoints(voltage, "blue", frequency)
+    comparePlot.plotPoints(voltage, "blue", frequency, false)
 
     // Calling function only after intervals of 1 min
     if(blueTime === -1 || new Date().getMinutes() - blueTime === 1){
         const voltageAverage = getAverage(data);
-        voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2)
+        voltagePlot.plotPoints(voltageAverage, "blue", frequency * 2, true)
         blueTime = new Date().getMinutes();
     }
 })
@@ -59,12 +59,12 @@ onValue(ref(db, "temperature"), (snapshot) => {
     const data = Object.entries(snapshot.val());
     const temperature = data.slice(data.length - frequency, data.length);
 
-    comparePlot.plotPoints(temperature, "green", frequency * 3)
+    comparePlot.plotPoints(temperature, "green", frequency * 3, false)
 
     // Calling function only after intervals of 1 min
     if(greenTime === -1 || new Date().getMinutes() - greenTime === 1){
         const temperatureAverage = getAverage(data);
-        temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4)
+        temperaturePlot.plotPoints(temperatureAverage, "green", frequency * 4, true)
         greenTime = new Date().getMinutes();
     }
 })
