@@ -82,7 +82,7 @@ function getAverage(rawData) {
     return averageData;
 }
 
-// Will find average for each interval of 1 mins
+// Will find average for each interval of 1 min
 function calAverage(data) {
     const timeSum = data.reduce((accumulator, currentValue) => {
         return accumulator + currentValue[0];
